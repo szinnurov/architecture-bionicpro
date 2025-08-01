@@ -1,13 +1,23 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt, JWTError
 import requests
 import json
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import random
+import os
 
 app = FastAPI(title="Reports API", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 KEYCLOAK_URL = "http://keycloak:8080"
 REALM = "reports-realm"
@@ -22,7 +32,6 @@ def get_public_keys():
     """Получение публичных ключей от Keycloak"""
     global public_keys_cache, public_keys_cache_time
     
-    # Проверяем, не устарел ли кэш (обновляем каждые 5 минут)
     if (public_keys_cache is None or 
         public_keys_cache_time is None or 
         datetime.now() - public_keys_cache_time > timedelta(minutes=5)):
